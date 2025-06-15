@@ -101,7 +101,7 @@ src/
 
 ## 📡 Deployed URL (if any)
 
-> 🔗 [Frontend Live URL](https://your-frontend-link.com)
+> 🔗 [Frontend Live URL](https://kuvaka-frontend.vercel.app/)
 
 Replace with actual deployed URL if available (e.g., Vercel or Netlify).
 
