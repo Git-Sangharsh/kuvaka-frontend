@@ -1,174 +1,118 @@
 
-# 💬 Real-Time Chat Application
+# Kuvaka Frontend 🎯
 
-A full-stack real-time chat application built with **React (frontend)** and **Node.js + WebSocket + MongoDB (backend)**.
+This is the frontend of the **Kuvaka Chat Application**, built using **React**, **Redux**, and **WebSocket** for real-time messaging. It allows users to enter their name and join a chat room with others in real time.
 
-It enables users to join a chatroom, send and receive real-time messages, get notified when others join/leave, and see typing indicators—all powered by WebSockets and persistent MongoDB storage.
+---
+
+## 🚀 Features
+
+- 💬 Real-time chat using WebSocket
+- 🎧 Notification sounds for new messages
+- ✍️ Typing indicator for live typing feedback
+- 🌙 Clean dark UI with responsive design
+- 🔄 Auto-scroll to latest message
+- ✅ Username form validation
 
 ---
 
 ## 📦 Tech Stack
 
-- **Frontend**: React, Redux, CSS
-- **Backend**: Node.js, WebSocket (`ws`), MongoDB (with Mongoose)
-- **Communication**: WebSocket protocol over `ws://` or `wss://`
+- **React** with functional components and hooks
+- **Redux** for state management
+- **WebSocket** for real-time communication
+- **CSS3** with custom animations
+- **Audio notifications**
+- **Framer Motion (optional)** for animations
 
 ---
 
-## 🚀 Live Deployment
+## 🛠️ Setup Instructions
 
-- **Frontend**: [Live App URL](https://your-frontend.vercel.app)
-- **Backend**: Hosted WebSocket server at `wss://your-backend-url.com`
-
----
-
-## 📁 Folder Structure
-
-```
-project-root/
-├── frontend/       # React app
-│   └── .env        # REACT_APP_WS_URL
-├── backend/        # Node.js + WebSocket server
-│   └── .env        # PORT, MONGODB_URI
-└── README.md
-```
-
----
-
-## 🛠️ Local Setup Instructions
-
-### 1. Clone the repository
-
+### 1. Clone the repo
 ```bash
-git clone https://github.com/your-username/realtime-chat-app.git
-cd realtime-chat-app
+git clone https://github.com/your-username/kuvaka-frontend.git
+cd kuvaka-frontend
 ```
 
----
-
-### 2. Backend Setup
-
+### 2. Install dependencies
 ```bash
-cd backend
 npm install
 ```
 
-Create a `.env` file in `backend/`:
+### 3. Set up environment variables
 
-```env
-PORT=5000
-MONGODB_URI=your-mongodb-connection-string
-```
-
-Run the server:
-
-```bash
-node server.js
-```
-
----
-
-### 3. Frontend Setup
-
-```bash
-cd frontend
-npm install
-```
-
-Create a `.env` file in `frontend/`:
+Create a `.env` file at the root with the following:
 
 ```env
 REACT_APP_WS_URL=ws://localhost:5000
 ```
 
-Start the frontend app:
+> Replace `localhost:5000` with your backend WebSocket server URL if deployed.
 
+### 4. Start the development server
 ```bash
 npm start
 ```
 
----
-
-## 🧠 Application Architecture
-
-### 📌 Backend (Node.js + WebSocket)
-
-- Uses the `ws` package for WebSocket connections.
-- Maintains a set of active clients (`clients`).
-- On client `init`, assigns username and sends last 50 messages from MongoDB.
-- Handles:
-  - `message`: Broadcast to all clients
-  - `typing`: Show typing indicator to others
-  - `system`: Join/leave announcements
-
-### 📌 Frontend (React + Redux)
-
-- Redux is used to store:
-  - `username`
-  - `messages`
-  - `typingUser`
-- WebSocket connection is opened once the username is set.
-- Features:
-  - Smooth chat scroll
-  - Input + send button
-  - Typing indicator
-  - Notification sound for new messages
+App runs at: [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 🔄 Concurrency Handling
+## 📁 Project Structure
 
-- All WebSocket messages are processed on the backend using `onmessage` listeners.
-- Broadcasts are sent to all open WebSocket connections except the origin.
-- Message delivery is instant and order-preserved due to single-threaded event loop of Node.js.
-- Backend does **not** persist "who is online" — it’s designed stateless except for chat history.
-
----
-
-## 🔗 Frontend <-> Backend Communication
-
-### WebSocket Events:
-
-| Event Type | Direction | Payload |
-|------------|-----------|---------|
-| `init` | → Backend | `{ username }` |
-| `history` | ← Backend | `{ messages: [...] }` |
-| `message` | ↔ Both | `{ message, timestamp }` |
-| `typing` | → Backend | `{ type: 'typing' }` |
-| `system` | ← Backend | `{ message: 'X joined', type: 'system' }` |
+```
+src/
+├── assets/             # Media (e.g., notification sound)
+├── components/
+│   ├── chat/           # Chat UI (ChatBox.js)
+│   └── form/           # Username form
+├── store/              # Redux store & actions
+├── App.js              # Root component
+├── index.js            # Entry point
+└── .env                # WebSocket URL
+```
 
 ---
 
-## 🤔 Assumptions & Design Decisions
+## 🔄 Frontend-Backend Communication
 
-- **Redux** was chosen to simplify state sharing across components (`username`, `messages`).
-- **WebSocket** is used instead of polling to provide low-latency updates.
-- **Typing Indicator** is a broadcast event triggered after user types.
-- **MongoDB** stores only messages for persistence. No user accounts or presence tracking.
-- **Messages** are fetched in reverse chronological order and reversed before sending to client.
-
----
-
-## 🌍 Deployment Guidance
-
-### Backend:
-- Deploy to Render, Railway, or fly.io
-- Use `wss://` in production
-- MongoDB Atlas for cloud DB
-
-### Frontend:
-- Deploy to Vercel or Netlify
-- Set `REACT_APP_WS_URL=wss://your-backend-url.com` in environment variables
+- Connects to WebSocket on app load.
+- Sends:
+  - `init`: when a user joins
+  - `message`: when a user sends a message
+  - `typing`: when a user is typing
+- Listens for:
+  - `history`: last 50 messages
+  - `message`: new messages
+  - `system`: join/leave updates
+  - `typing`: typing notifications
 
 ---
 
-## 👨‍💻 Author
+## ⚙️ Design Decisions
 
-- **Sangharsh**
-- [LinkedIn](https://linkedin.com/in/your-profile) | [Portfolio](https://yourwebsite.com)
+- Username is stored globally using Redux for access across components.
+- Chat scrolls to latest message automatically.
+- Messages differentiated visually by sender.
+- Typing indicator is shown only for others (not yourself).
 
 ---
 
-## 📝 License
+## 📡 Deployed URL (if any)
 
-This project is licensed under the MIT License.
+> 🔗 [Frontend Live URL](https://your-frontend-link.com)
+
+Replace with actual deployed URL if available (e.g., Vercel or Netlify).
+
+---
+
+## 🙌 Contribution
+
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+---
+
+## 📄 License
+
+MIT
