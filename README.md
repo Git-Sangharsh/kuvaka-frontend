@@ -1,70 +1,174 @@
-# Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# 💬 Real-Time Chat Application
 
-## Available Scripts
+A full-stack real-time chat application built with **React (frontend)** and **Node.js + WebSocket + MongoDB (backend)**.
 
-In the project directory, you can run:
+It enables users to join a chatroom, send and receive real-time messages, get notified when others join/leave, and see typing indicators—all powered by WebSockets and persistent MongoDB storage.
 
-### `npm start`
+---
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 📦 Tech Stack
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **Frontend**: React, Redux, CSS
+- **Backend**: Node.js, WebSocket (`ws`), MongoDB (with Mongoose)
+- **Communication**: WebSocket protocol over `ws://` or `wss://`
 
-### `npm test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 🚀 Live Deployment
 
-### `npm run build`
+- **Frontend**: [Live App URL](https://your-frontend.vercel.app)
+- **Backend**: Hosted WebSocket server at `wss://your-backend-url.com`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 📁 Folder Structure
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```
+project-root/
+├── frontend/       # React app
+│   └── .env        # REACT_APP_WS_URL
+├── backend/        # Node.js + WebSocket server
+│   └── .env        # PORT, MONGODB_URI
+└── README.md
+```
 
-### `npm run eject`
+---
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## 🛠️ Local Setup Instructions
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### 1. Clone the repository
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```bash
+git clone https://github.com/your-username/realtime-chat-app.git
+cd realtime-chat-app
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+---
 
-## Learn More
+### 2. Backend Setup
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```bash
+cd backend
+npm install
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Create a `.env` file in `backend/`:
 
-### Code Splitting
+```env
+PORT=5000
+MONGODB_URI=your-mongodb-connection-string
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Run the server:
 
-### Analyzing the Bundle Size
+```bash
+node server.js
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+---
 
-### Making a Progressive Web App
+### 3. Frontend Setup
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+```bash
+cd frontend
+npm install
+```
 
-### Advanced Configuration
+Create a `.env` file in `frontend/`:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```env
+REACT_APP_WS_URL=ws://localhost:5000
+```
 
-### Deployment
+Start the frontend app:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+```bash
+npm start
+```
 
-### `npm run build` fails to minify
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## 🧠 Application Architecture
+
+### 📌 Backend (Node.js + WebSocket)
+
+- Uses the `ws` package for WebSocket connections.
+- Maintains a set of active clients (`clients`).
+- On client `init`, assigns username and sends last 50 messages from MongoDB.
+- Handles:
+  - `message`: Broadcast to all clients
+  - `typing`: Show typing indicator to others
+  - `system`: Join/leave announcements
+
+### 📌 Frontend (React + Redux)
+
+- Redux is used to store:
+  - `username`
+  - `messages`
+  - `typingUser`
+- WebSocket connection is opened once the username is set.
+- Features:
+  - Smooth chat scroll
+  - Input + send button
+  - Typing indicator
+  - Notification sound for new messages
+
+---
+
+## 🔄 Concurrency Handling
+
+- All WebSocket messages are processed on the backend using `onmessage` listeners.
+- Broadcasts are sent to all open WebSocket connections except the origin.
+- Message delivery is instant and order-preserved due to single-threaded event loop of Node.js.
+- Backend does **not** persist "who is online" — it’s designed stateless except for chat history.
+
+---
+
+## 🔗 Frontend <-> Backend Communication
+
+### WebSocket Events:
+
+| Event Type | Direction | Payload |
+|------------|-----------|---------|
+| `init` | → Backend | `{ username }` |
+| `history` | ← Backend | `{ messages: [...] }` |
+| `message` | ↔ Both | `{ message, timestamp }` |
+| `typing` | → Backend | `{ type: 'typing' }` |
+| `system` | ← Backend | `{ message: 'X joined', type: 'system' }` |
+
+---
+
+## 🤔 Assumptions & Design Decisions
+
+- **Redux** was chosen to simplify state sharing across components (`username`, `messages`).
+- **WebSocket** is used instead of polling to provide low-latency updates.
+- **Typing Indicator** is a broadcast event triggered after user types.
+- **MongoDB** stores only messages for persistence. No user accounts or presence tracking.
+- **Messages** are fetched in reverse chronological order and reversed before sending to client.
+
+---
+
+## 🌍 Deployment Guidance
+
+### Backend:
+- Deploy to Render, Railway, or fly.io
+- Use `wss://` in production
+- MongoDB Atlas for cloud DB
+
+### Frontend:
+- Deploy to Vercel or Netlify
+- Set `REACT_APP_WS_URL=wss://your-backend-url.com` in environment variables
+
+---
+
+## 👨‍💻 Author
+
+- **Sangharsh**
+- [LinkedIn](https://linkedin.com/in/your-profile) | [Portfolio](https://yourwebsite.com)
+
+---
+
+## 📝 License
+
+This project is licensed under the MIT License.
