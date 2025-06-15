@@ -27,18 +27,31 @@ const ChatBox = () => {
 
       if (data.type === "history") {
         dispatch({ type: "SET_MESSAGES", payload: data.messages });
+      }
 
-      } else if (data.type === "message") {
+      // Handle regular messages
+      else if (data.type === "message") {
         dispatch({ type: "ADD_MESSAGE", payload: data.message });
 
-        // ✅ Only check username when message data exists
         if (data.message.username !== username) {
           const audio = new Audio(NotifcationSound);
           audio.play().catch((e) => console.log("Sound error:", e));
         }
       }
-    };
 
+      // Handle system messages like join/leave
+      else if (data.type === "system") {
+        dispatch({
+          type: "ADD_MESSAGE",
+          payload: {
+            username: "System",
+            message: data.message,
+            timestamp: data.timestamp,
+            type: "system",
+          },
+        });
+      }
+    };
 
     ws.current.onerror = (err) => {
       console.error("❌ WebSocket error:", err);
@@ -66,7 +79,8 @@ const ChatBox = () => {
       };
       ws.current.send(JSON.stringify(messagePayload));
       setInput("");
-      const audio = new Audio(NotifcationSound); // or use imported sound
+
+      const audio = new Audio(NotifcationSound);
       audio.play().catch((e) => console.log("Sound error:", e));
     }
   };
@@ -84,25 +98,37 @@ const ChatBox = () => {
   return (
     <div className="chatbox-wrapper">
       <div className="chatbox-container">
-        {/* <h2 className="welcome">Welcome, {username}</h2> */}
         <div className="chat-window">
           {messages.map((msg, index) => (
             <div
-              key={msg.id || index}
+              key={msg._id || index}
               className={`chat-message ${
-                msg.username === username ? "own" : ""
+                msg.type === "system"
+                  ? "system"
+                  : msg.username === username
+                  ? "own"
+                  : ""
               }`}
             >
-              <div className="msg-header">
-                <span className="msg-username">{msg.username}</span>
-                <span className="msg-time">{formatTime(msg.timestamp)}</span>
-              </div>
-              <div className="msg-text">{msg.message}</div>
+              {msg.type === "system" ? (
+                <div className="msg-text system-text">
+                  <i  className="msg-i">{msg.message}</i>
+                </div>
+              ) : (
+                <>
+                  <div className="msg-header">
+                    <span className="msg-username">{msg.username}</span>
+                    <span className="msg-time">{formatTime(msg.timestamp)}</span>
+                  </div>
+                  <div className="msg-text">{msg.message}</div>
+                </>
+              )}
             </div>
           ))}
 
           <div ref={chatEndRef} />
         </div>
+
         <div className="chat-input-area">
           <input
             type="text"
