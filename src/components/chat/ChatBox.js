@@ -9,8 +9,11 @@ const ChatBox = () => {
   const dispatch = useDispatch();
 
   const [input, setInput] = useState("");
+  const [typingUser, setTypingUser] = useState(null);
+
   const ws = useRef(null);
   const chatEndRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
 
   useEffect(() => {
     if (!username) return;
@@ -29,7 +32,6 @@ const ChatBox = () => {
         dispatch({ type: "SET_MESSAGES", payload: data.messages });
       }
 
-      // Handle regular messages
       else if (data.type === "message") {
         dispatch({ type: "ADD_MESSAGE", payload: data.message });
 
@@ -39,7 +41,6 @@ const ChatBox = () => {
         }
       }
 
-      // Handle system messages like join/leave
       else if (data.type === "system") {
         dispatch({
           type: "ADD_MESSAGE",
@@ -50,6 +51,18 @@ const ChatBox = () => {
             type: "system",
           },
         });
+      }
+
+      // Handle typing event
+      else if (data.type === "typing") {
+        setTypingUser(data.username);
+
+        // Clear previous timeout
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+
+        typingTimeoutRef.current = setTimeout(() => {
+          setTypingUser(null);
+        }, 2000);
       }
     };
 
@@ -89,15 +102,44 @@ const ChatBox = () => {
     if (e.key === "Enter") sendMessage();
   };
 
+  const handleTyping = (e) => {
+    setInput(e.target.value);
+
+    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+      ws.current.send(
+        JSON.stringify({
+          type: "typing",
+          username,
+        })
+      );
+    }
+  };
+
   const formatTime = (iso) => {
     if (!iso) return "";
     const date = new Date(iso);
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
+  function toTitleCase(str) {
+    return str
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  }
+
   return (
     <div className="chatbox-wrapper">
       <div className="chatbox-container">
+        <div className="chatbox-nav">
+          {toTitleCase(username)}
+          {typingUser && typingUser !== username && (
+            <div className="typing-indicator">
+              {toTitleCase(typingUser)} is typing...
+            </div>
+          )}
+        </div>
+
         <div className="chat-window">
           {messages.map((msg, index) => (
             <div
@@ -112,7 +154,7 @@ const ChatBox = () => {
             >
               {msg.type === "system" ? (
                 <div className="msg-text system-text">
-                  <i  className="msg-i">{msg.message}</i>
+                  <i className="msg-i">{msg.message}</i>
                 </div>
               ) : (
                 <>
@@ -134,7 +176,7 @@ const ChatBox = () => {
             type="text"
             placeholder="Type a message..."
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={handleTyping}
             onKeyDown={handleKeyDown}
             className="chat-input"
           />

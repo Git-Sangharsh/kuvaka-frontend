@@ -76,6 +76,29 @@
   }
 
 
-  /* .input-error {
-    border: 1px solid #ff4d4f;
-  } */
+  @media only all and (max-width: 480px) {
+    .username-form-container {
+      margin: 40px 1rem;
+      padding: 1.5rem;
+      border-radius: 6px;
+    }
+
+    .username-form h2 {
+      font-size: 1.2rem;
+    }
+
+    .username-input,
+    .username-button {
+      padding: 0.6rem;
+      font-size: 0.95rem;
+    }
+
+    .username-title {
+      font-size: 1.25rem;
+      margin: 0.5rem 0;
+    }
+
+    .error-message {
+      font-size: 12px;
+    }
+  }
